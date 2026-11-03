@@ -347,6 +347,30 @@ td{padding:12px;border-bottom:1px solid var(--linha);color:var(--tinta)}
 @media (max-width:860px){.ficha{grid-template-columns:1fr}}
 .voltar{display:inline-flex;gap:6px;align-items:center;font:500 14px var(--corpo);color:var(--mar);text-decoration:none;margin-bottom:18px}
 .lista-co td a.nm{color:var(--tinta);font-weight:700;text-decoration:none} .lista-co td a.nm:hover{color:var(--mar);text-decoration:underline}
+/* funções para as quais a pessoa está apta: discreto, abre ao clicar */
+.apt-painel{margin-top:10px;max-width:640px}
+.apt-painel summary{cursor:pointer;list-style:none;display:inline-flex;align-items:center;gap:8px;font:500 13.5px/1.3 var(--corpo);color:#B8C8D8;padding:4px 0}
+.apt-painel summary::-webkit-details-marker{display:none}
+.apt-painel summary::after{content:"";width:7px;height:7px;border-right:1.5px solid currentColor;border-bottom:1.5px solid currentColor;transform:rotate(45deg) translateY(-2px);transition:transform .2s;margin-left:2px}
+.apt-painel[open] summary::after{transform:rotate(-135deg) translateY(-1px)}
+.apt-painel summary:hover{color:#fff}
+.apt-painel summary b{color:#9FE3C4;font-weight:600}
+.apt-lista{margin-top:10px;padding:14px 16px;border-radius:14px;background:rgba(4,16,31,.35);box-shadow:inset 0 0 0 1px rgba(231,238,244,.08);columns:2 240px;column-gap:28px}
+.apt-grupo{display:block;break-inside:avoid;font:500 10.5px/1 var(--dado);letter-spacing:.09em;text-transform:uppercase;color:#7F95AC;margin:10px 0 6px}
+.apt-grupo:first-child{margin-top:0}
+.apt{all:unset;cursor:pointer;display:flex;align-items:baseline;gap:9px;width:100%;padding:4px 0;break-inside:avoid;font:400 14px/1.35 var(--corpo);color:#E7EEF4}
+.apt i{flex:none;width:7px;height:7px;border-radius:50%;transform:translateY(-1px)}
+.apt small{margin-left:auto;padding-left:10px;font:400 11px/1 var(--dado);color:#7F95AC;white-space:nowrap}
+.apt.n0 i,.d0{background:#5FD38E} .apt.n1 i,.d1{background:#8FC9B0} .apt.n2 i,.d2{background:#D9B86A} .apt.n3 i,.d3{background:rgba(231,238,244,.3)}
+.apt.n1{color:rgba(231,238,244,.85)} .apt.n2{color:rgba(231,238,244,.7)} .apt.n3{color:rgba(231,238,244,.5)}
+.apt.n0 small{color:#9FE3C4}
+.apt:hover span{text-decoration:underline;text-underline-offset:3px}
+.apt[aria-pressed="true"]{font-weight:600;color:#fff}
+.apt:focus-visible{outline:2px solid var(--sonar);outline-offset:2px;border-radius:4px}
+.apt-rodape{display:flex;flex-wrap:wrap;justify-content:space-between;gap:10px;margin-top:10px;font:400 11px/1 var(--dado);color:#7F95AC}
+.apt-leg{display:flex;align-items:center;gap:6px} .apt-leg i{width:7px;height:7px;border-radius:50%;margin-left:6px} .apt-leg i:first-child{margin-left:0}
+.apt-todas{display:flex;gap:6px;align-items:center;cursor:pointer} .apt-todas input{width:14px;height:14px;accent-color:var(--sonar);margin:0}
+.apt-nota{margin-top:6px;font:400 11px/1.4 var(--dado);color:#6E849B}
 /* caminho e centros */
 .caminho{list-style:none;margin:24px 0 0;padding:0;display:grid;gap:12px;counter-reset:p}
 .passo{display:grid;grid-template-columns:44px 1fr;gap:16px;padding:18px 20px;border-radius:var(--r);background:var(--cartao);box-shadow:var(--sombra)}
@@ -598,6 +622,13 @@ audio{color-scheme:dark}
         <div style="min-width:0">
           <h2><span id="cv-nome">Rafael Siqueira</span> <span class="fonte" id="cv-origem" style="font-size:12px;vertical-align:middle">exemplo fictício</span></h2>
           <label class="f" for="cv-func" style="max-width:440px;margin-top:12px;color:#A9BCD0">Função principal<select id="cv-func"></select></label>
+          <details class="apt-painel" id="apt-painel">
+            <summary><span id="apt-resumo">Para quais funções você já está apto</span></summary>
+            <div class="apt-lista" id="apt-mapa"></div>
+            <div class="apt-rodape"><span class="apt-leg"><i class="d0"></i>apto <i class="d1"></i>falta 1 <i class="d2"></i>faltam 2 <i class="d3"></i>3 ou mais</span>
+              <label class="apt-todas"><input type="checkbox" id="apt-todas"> todas as áreas</label></div>
+            <p class="apt-nota">Conta só os certificados; a carta de competência de cada cargo é conferida à parte.</p>
+          </details>
           <div class="selos" id="cv-badges"></div>
         </div>
         <div class="anel" id="cv-anel"></div>
@@ -638,9 +669,7 @@ audio{color-scheme:dark}
       <p class="muted" style="margin-top:8px;max-width:64ch">Escolha a função lá em cima. Aqui aparece, em ordem, o que fazer para ter todos os certificados obrigatórios e onde fazer cada curso.</p>
       <ol class="caminho" id="cam-lista"></ol>
       <div id="cam-extra"></div>
-      <div style="margin-top:clamp(40px,6vw,64px)"><div class="olho">Outras funções ao seu alcance</div>
-        <p class="muted peq" style="margin-top:6px">Funções da mesma área que ficam prontas com até 2 cursos, pelos certificados que você já tem. A carta de competência de cada cargo ainda é conferida à parte. Toque para ver o caminho.</p>
-        <div class="outras" id="cam-outras"></div></div>
+      <div class="outras" id="cam-outras" hidden></div>
     </div>
   </section>
 
@@ -1188,6 +1217,7 @@ function renderCV(){
     + (a.f.sigla_br?`<span class="selo"><i></i>${esc(a.f.sigla_br)}</span>`:"");
   renderVaga();
   renderCaminho();
+  renderAptidao();
 }
 document.addEventListener("change", e => {
   const c = e.target.dataset.c, d = e.target.dataset.d;
@@ -1694,7 +1724,8 @@ function renderCaminho(){
   const fid = $("cv-func").value, a = avaliar(fid), f = FUNC[fid];
   /* primeiro o que impede o embarque (falta ou vencido), depois o que vence logo */
   const falta = a.req.filter(id => status(id)[0] !== "ok").sort((x, y) => (status(x)[0] === "bad" ? 0 : 1) - (status(y)[0] === "bad" ? 0 : 1));
-  $("cam-titulo").textContent = falta.length ? `Para ser ${f.nome_pt.replace(/\s*\(.*\)/, "")}, faltam ${falta.length} passo${falta.length > 1 ? "s" : ""}` : `Tudo em dia para ${f.nome_pt.replace(/\s*\(.*\)/, "")}`;
+  const nomeF = f.nome_pt.replace(/\s*\(.*\)/, ""), b = falta.filter(id => status(id)[0] === "bad").length, w = falta.length - b;
+  $("cam-titulo").textContent = (b ? `Para ser ${nomeF}, ${b > 1 ? "faltam " + b + " certificados" : "falta 1 certificado"}` : `Você já está apto para ${nomeF}`) + (w ? ` · ${w} ${w > 1 ? "vencem" : "vence"} em breve` : "");
   $("cam-lista").innerHTML = falta.map((id, i) => passo(id, i + 1)).join("") || `<li class="passo ok"><span class="passo-n">✓</span><div><b>Você tem todos os certificados obrigatórios desta função.</b><p class="meta">Mantenha as validades em dia; a Crewnauta avisa antes de vencer <span class="selo-breve">em breve</span></p></div></li>`;
   const dese = a.opt.filter(id => !tenho[id]);
   $("cam-extra").innerHTML = dese.length ? `<details class="gaveta" style="margin-top:18px"><summary>Para se destacar na função <span class="muted mono" style="font-size:14px;font-weight:400;margin-left:auto;margin-right:16px">${dese.length} desejáveis</span></summary><ol class="caminho" style="margin-top:12px">${dese.map((id, i) => passo(id, i + 1)).join("")}</ol></details>` : "";
@@ -1713,6 +1744,23 @@ const ICONE_DEP = { "convés":"Apoio marítimo offshore", "máquinas":"Rebocador
   "fluvial convés":"Navegação interior", "fluvial máquinas":"Navegação interior", "saúde":"Agências de tripulação", "segurança":"Agências de tripulação", "mergulho":"Dragagem", "rádio":"Praticagem", "guindaste e movimentação de carga":"Plataformas, FPSO e sondas" };
 const iconeFuncao = f => iconeSetor(ICONE_DEP[f.departamento] || "Armadores", 26);
 $("cam-outras").addEventListener("click", e => { const b = e.target.closest(".outra"); if(!b) return; $("cv-func").value = b.dataset.f; $("cv-func").dispatchEvent(new Event("change")); $("caminho").scrollIntoView({behavior: PARADO ? "auto" : "smooth"}); });
+
+/* ---------- mapa de aptidão: todas as funções pintadas pela distância ---------- */
+function faltamPara(x){ return x.certificados_obrigatorios.filter(id => CERT[id] && status(id)[0] === "bad").length; }
+function renderAptidao(){
+  const fid = $("cv-func").value, f = FUNC[fid];
+  const FAM = { "convés":["convés","posicionamento dinâmico (DP)"], "posicionamento dinâmico (DP)":["convés","posicionamento dinâmico (DP)"], "offshore produção":["offshore produção","segurança","guindaste e movimentação de carga"],
+    "perfuração":["perfuração","offshore produção"], "fluvial convés":["fluvial convés","convés"], "fluvial máquinas":["fluvial máquinas","máquinas"], "pesca convés":["pesca convés","pesca máquinas"] };
+  const todas = $("apt-todas").checked, areas = todas ? null : (FAM[f.departamento] || [f.departamento]);
+  const lista = FC.funcoes.filter(x => !areas || areas.includes(x.departamento)).map(x => ({ x, n: faltamPara(x) }));
+  const aptas = FC.funcoes.filter(x => faltamPara(x) === 0 && (!areas || areas.includes(x.departamento))).length;
+  $("apt-resumo").innerHTML = aptas ? `Você já está apto para <b>${aptas} ${aptas > 1 ? "funções" : "função"}</b> desta área` : "Para quais funções você já está apto";
+  const grupos = {}; lista.forEach(o => (grupos[o.x.departamento] = grupos[o.x.departamento] || []).push(o));
+  $("apt-mapa").innerHTML = Object.entries(grupos).map(([dep, os]) => `<span class="apt-grupo">${esc(dep)}</span>` +
+    os.sort((a, b) => a.n - b.n).map(o => `<button type="button" class="apt n${Math.min(o.n, 3)}" data-f="${o.x.id}" aria-pressed="${o.x.id === fid}"><i></i><span>${esc(o.x.nome_pt.replace(/\s*\(.*\)/, ""))}</span><small>${o.n ? (o.n > 1 ? "faltam " + o.n : "falta 1") : "apto"}</small></button>`).join("")).join("");
+}
+$("apt-mapa").addEventListener("click", e => { const b = e.target.closest(".apt"); if(!b) return; $("cv-func").value = b.dataset.f; $("cv-func").dispatchEvent(new Event("change")); });
+$("apt-todas").addEventListener("change", renderAptidao);
 
 /* ---------- centros de treinamento na página de empresas ---------- */
 let ctFiltro = "";
